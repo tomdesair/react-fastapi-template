@@ -16,7 +16,7 @@ def alive() -> dict[str, str]:
 
 @router.get("/ready")
 def ready(request: Request) -> dict[str, str]:
-    # Startup owns database initialization; readiness independently verifies
+    # Migrations own schema initialization; readiness independently verifies
     # that a real pooled connection can still execute a round-trip query.
     database = cast(Database, request.app.state.database)
     try:

@@ -9,11 +9,14 @@ from backend.config import get_settings
 from backend.counters.router import router as counters_router
 from backend.database import create_database
 from backend.health.router import router as health_router
+from backend.logging import suppress_health_check_access_logs
 
 
 def create_app(
     database_url: str | None = None, frontend_dir: Path | None = None
 ) -> FastAPI:
+    suppress_health_check_access_logs()
+
     # Resolve settings while constructing this app instance so tests can change
     # configuration without sharing stale process-global settings.
     settings = get_settings(database_url)
