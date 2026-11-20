@@ -7,7 +7,7 @@ list:
 # Install all project dependencies
 install:
     uv sync --dev
-    pnpm i
+    pnpm --dir frontend install
 
 alias i := install
 
@@ -23,7 +23,7 @@ start port='8080':
 develop target:
     #!/usr/bin/env sh
     if [ "{{target}}" = "frontend" ]; then
-        pnpm run dev
+        pnpm --dir frontend run dev
     elif [ "{{target}}" = "backend" ]; then
         uv run uvicorn backend.server:app --reload
     else
@@ -37,7 +37,7 @@ alias dev := develop
 test target:
     #!/usr/bin/env sh
     if [ "{{target}}" = "frontend" ]; then
-        pnpm run test
+        pnpm --dir frontend run test
     elif [ "{{target}}" = "backend" ]; then
         uv run python -m pytest backend/tests
     else

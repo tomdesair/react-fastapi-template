@@ -2,6 +2,7 @@
   "name": "react-fastapi-template",
   "private": true,
   "version": "0.0.0",
+  "description": "Frontend for the React and FastAPI template",
   "type": "module",
   "scripts": {
     "dev": "vite",

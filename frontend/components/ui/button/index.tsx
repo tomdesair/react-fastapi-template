@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -45,6 +45,8 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
+  // `asChild` lets callers retain the button variants on semantic links or
+  // other controls without rendering invalid nested interactive elements.
   const Comp = asChild ? Slot : "button"
 
   return (

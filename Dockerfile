@@ -1,14 +1,14 @@
 FROM node:23-alpine AS frontend-builder
 
-WORKDIR /app
+WORKDIR /app/frontend
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY package.json pnpm-lock.yaml ./
+COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 
 RUN pnpm install
 
-COPY . .
+COPY frontend/ ./
 
 RUN pnpm build
 
@@ -29,10 +29,12 @@ WORKDIR /app
 
 COPY --from=backend-builder --chown=app:app /app/.venv /venv
 
-COPY --from=frontend-builder /app/dist ./frontend
+COPY --from=frontend-builder /app/frontend/dist ./frontend
 
 COPY backend/ ./backend
 
 ENV PATH="/venv/bin:$PATH"
 
 COPY unit.json /docker-entrypoint.d/config.json
+
+HEALTHCHECK --interval=5s --timeout=3s CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1/api/health/ready', timeout=3)"]

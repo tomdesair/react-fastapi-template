@@ -1,26 +1,40 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, APIRouter, Request
-from pydantic import BaseModel
+from fastapi import FastAPI
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.state.counter = 0
-    yield
+from backend.config import get_settings
+from backend.counters.router import router as counters_router
+from backend.database import create_database, initialize_database
+from backend.health.router import router as health_router
 
-app = FastAPI(lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json")
 
-router = APIRouter(prefix="/api")
+def create_app(database_url: str | None = None) -> FastAPI:
+    # Resolve settings while constructing this app instance so tests can change
+    # configuration without sharing stale process-global settings.
+    settings = get_settings(database_url)
 
-@router.get("/counter")
-async def get_counter(request: Request):
-    return {"counter": request.app.state.counter}
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+        database = create_database(settings.database_url)
+        app.state.database = database
+        initialize_database(database)
+        try:
+            yield
+        finally:
+            # Releasing pooled connections is part of shutdown and must happen
+            # even when serving is interrupted by an exception.
+            database.engine.dispose()
 
-class Input(BaseModel):
-    amount: int
+    app = FastAPI(
+        lifespan=lifespan,
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        title="React + FastAPI Template",
+    )
+    app.include_router(counters_router)
+    app.include_router(health_router)
+    return app
 
-@router.post("/counter")
-async def add_to_counter(request: Request, input: Input):
-    request.app.state.counter += input.amount
 
-app.include_router(router)
+app = create_app()

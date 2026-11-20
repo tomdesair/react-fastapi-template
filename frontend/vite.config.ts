@@ -8,11 +8,14 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "./frontend"),
+      "@": path.resolve(import.meta.dirname, "."),
     },
   },
   server: {
     proxy: {
+      // Preserve the backend's same-origin contract during local development.
+      // Frontend source directories must not use `api` as a name because Vite
+      // transforms their module URLs under the same reserved URL prefix.
       "/api": {
         target: "http://localhost:8000",
       },

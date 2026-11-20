@@ -43,6 +43,32 @@ Before writing any code, stop at the first rung that holds:
   self-check, or focused test that fails when the logic breaks. Avoid adding a
   test framework or fixture machinery; trivial one-liners need no test.
 
+### The "2-Year Maintainability Rule" for Inline Documentation & Code Readability
+
+- **The "2-Year Maintainability Rule"**: Every single fix, complicated or
+  non-trivial code block, boundary condition, and `if`-test MUST include
+  thorough inline comments explaining *why* that specific call, calculation,
+  or branch condition was chosen. The code must be documented so clearly that
+  after 2 years, any maintainer can immediately understand the reasoning,
+  edge-case rationale, or protocol specification behind it without having to
+  reverse-engineer the commit history.
+- Write natural, explanatory comments describing the reasoning and intent
+  directly. Do NOT prefix comments with literal meta-labels such as `The
+  2-Year Maintainability Rule:` or review audit section identifiers (e.g.,
+  `H5:`).
+- **No Agent File References**: Never mention `AGENTS.md` or reference
+  `AGENTS.md` rules in source code comments. Comments must describe the
+  engineering intent and domain logic directly without referencing agent
+  prompt files, meta-rules, or instruction documents.
+- Keep comment line breaks balanced and clean within the 100-character column
+  limit enforced by Python or Typescript code formatters.
+- Always write and preserve thorough inline comments across all main and test
+  code source files to explain non-obvious algorithms, multi-step operations,
+  and complex logic.
+- Ensure all function implementations remain short, clean, well-documented,
+  and stick to the same level of abstraction. Use helper methods to break down
+  complex logic into smaller, readable pieces.
+
 ### Security rules
 
 Be security-minded: trust nothing, verify everything, use defense in depth,
@@ -89,8 +115,42 @@ explicit requirement. Code without the appropriate check is unfinished.
 This project is one full-stack application deployed as one NGINX Unit
 container:
 
-- `frontend/` contains the React 19 and TypeScript application.
-- `backend/` contains the FastAPI application and Python package.
+- `backend/` contains the FastAPI application and Python package:
+  - `backend/config.py` owns typed Pydantic Settings definitions, defaults,
+    environment-variable loading, and optional `.env` loading.
+  - `backend/database.py` owns SQLAlchemy engine, session, declarative base,
+    database lifecycle, and initialization concerns.
+  - `backend/counters/` owns counter persistence models, Pydantic request and
+    response schemas, and `/api/counters` routes.
+  - `backend/health/` owns `/api/health` liveness and readiness routes.
+  - `backend/tests/` contains focused endpoint tests organized around API
+    features. Keep feature-specific tests in this package instead of expanding
+    `backend/server.py`.
+  - `backend/server.py` is the composition root: it configures the FastAPI
+    lifecycle and includes routers.
+- `frontend/` contains the React 19 and TypeScript application:
+  - The frontend is a self-contained pnpm project. Its package manifest,
+    lockfile, workspace policy, Vite, ESLint, TypeScript, shadcn, and HTML
+    entry-point configuration all live under `frontend/`.
+  - `frontend/services/` owns typed HTTP clients and TanStack Query keys. Do
+    not name frontend source directories `api`: Vite's `/api` proxy would
+    intercept their transformed module URLs during development.
+  - `frontend/components/` contains reusable feature and UI components;
+    shadcn/ui primitives remain under `frontend/components/ui/`. Every
+    component must have its own subdirectory with an `index.tsx`; keep related
+    component-named CSS and support files in that directory. Keep
+    `frontend/index.css` limited to Tailwind imports, shared theme tokens, and
+    truly global base styles.
+  - `frontend/components/app/index.tsx` composes application-level pages and
+    server-state queries and mutations. `frontend/main.tsx` provides the
+    browser and Query client entry point.
+  - `frontend/tests/` contains Vitest and React Testing Library tests for the
+    application and components. Mirror the component hierarchy under
+    `frontend/tests/components/`: for example, a test for
+    `components/counters/counter-card/index.tsx` belongs in
+    `tests/components/counters/counter-card/index.test.tsx`. Service tests
+    belong under `frontend/tests/services/` and should cover request contracts
+    and error handling.
 - `unit.json` routes `/api/*` requests to `backend.server:app` and serves the
   compiled frontend for every other request.
 - The frontend and backend share an origin in production, so frontend API calls
@@ -103,7 +163,8 @@ container:
 
 ## Technology and tooling
 
-- Python 3.13+ with FastAPI, Pydantic, and Uvicorn.
+- Python 3.13+ with FastAPI, Pydantic, Pydantic Settings, SQLAlchemy, and
+  Uvicorn.
 - uv manages Python dependencies and the committed `uv.lock` file.
 - React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, and TanStack Query power
   the frontend. TanStack libraries are headless and should be added only when a
@@ -136,7 +197,8 @@ container:
     team needs their diagnostics and keep them development-only.
   Before adopting another library, confirm the current package status and
   React compatibility; beta libraries require explicit justification.
-- pnpm manages Node dependencies and the committed `pnpm-lock.yaml` file.
+- pnpm manages Node dependencies with the committed
+  `frontend/pnpm-lock.yaml` and `frontend/pnpm-workspace.yaml` files.
 - Backend tests use pytest and FastAPI's `httpx2`-backed `TestClient`.
 - Frontend tests use Vitest, jsdom, and React Testing Library.
 - `just` is the public command interface for installation, development,
@@ -146,10 +208,35 @@ container:
 ## Working conventions
 
 - Keep backend code and tests under `backend/`.
-- Keep React source, assets, shadcn components, and frontend tests under
-  `frontend/`.
+- Keep React source, assets, shadcn components, frontend tests, and all
+  frontend-specific configuration under `frontend/`.
+- Put every React component in a separate component subdirectory with an
+  `index.tsx`; do not add component `.tsx` files directly under `components/`
+  or alongside sibling component files.
+- Keep frontend component test paths aligned with their source paths. Mirror
+  `frontend/components/` beneath `frontend/tests/components/` and name the test
+  for each `index.tsx` component `index.test.tsx`.
+- Do not add component-specific selectors to `frontend/index.css`. Colocate a
+  named CSS file with any component that needs custom styles; components that
+  use only utility classes need no CSS file.
 - Use `@/` imports for frontend modules beneath `frontend/`.
+- Run frontend tools with `pnpm --dir frontend` when invoking pnpm directly
+  from the repository root. Prefer the corresponding `just` recipe for the
+  public workflow.
+- Keep `pyproject.toml`, `uv.lock`, and `.python-version` at the repository root.
+  uv, Python packaging tools, and IDEs conventionally discover these project
+  metadata files there; moving them would add `--project` handling to normal
+  development and container workflows without isolating a separate Python
+  distribution.
 - Preserve the `/api` prefix for FastAPI routes and relative frontend API calls.
+- Configure non-default databases with `DATABASE_URL`; the default SQLite
+  database is `database.db` in the repository root. `.env` values are loaded by
+  `backend/config.py`; environment variables override `.env`, and explicit
+  `create_app()` test values override both. Keep defaults and fallbacks in the
+  settings module rather than `server.py`.
+- Whenever a configuration property is added or changed, update
+  `.env.example` in the same change. Use a safe non-secret example value and
+  document required or optional behavior where appropriate.
 - Keep local development, Unit routing, Docker paths, and documentation in
   sync when moving or adding application entry points.
 - Add backend development dependencies to the `dev` dependency group in
@@ -172,6 +259,6 @@ Run commands from the repository root:
 - `just start` runs that container on port 8080 by default.
 
 The direct production checks for each side are `uv sync --locked --no-dev` for
-the backend and `pnpm run build` for the frontend. Use the smallest relevant
-test or build command while developing, then run both sides' checks when
-shared configuration or the container layout changes.
+the backend and `pnpm --dir frontend run build` for the frontend. Use the
+smallest relevant test or build command while developing, then run both sides'
+checks when shared configuration or the container layout changes.
