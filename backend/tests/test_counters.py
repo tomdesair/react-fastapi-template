@@ -2,6 +2,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from backend.migrations.runner import upgrade_database
 from backend.server import create_app
 
 
@@ -9,6 +10,7 @@ def test_default_counter_is_blue_and_can_be_incremented(tmp_path: Path) -> None:
     # A file-backed temporary database exercises real startup persistence and
     # verifies both halves of the empty-database bootstrap contract.
     database_url = f"sqlite:///{tmp_path / 'database.db'}"
+    upgrade_database(database_url)
 
     with TestClient(create_app(database_url)) as client:
         response = client.get("/api/counters")
@@ -24,6 +26,7 @@ def test_counters_are_persisted_and_colors_are_unique(tmp_path: Path) -> None:
     # Upper-case input verifies canonicalization, while restarting the app with
     # the same file proves that both color and uniqueness survive process life.
     database_url = f"sqlite:///{tmp_path / 'database.db'}"
+    upgrade_database(database_url)
 
     with TestClient(create_app(database_url)) as client:
         response = client.post("/api/counters", json={"color": "#FF0000"})
@@ -44,7 +47,9 @@ def test_counters_are_persisted_and_colors_are_unique(tmp_path: Path) -> None:
 
 
 def test_counter_color_is_validated(tmp_path: Path) -> None:
-    with TestClient(create_app(f"sqlite:///{tmp_path / 'validation.db'}")) as client:
+    database_url = f"sqlite:///{tmp_path / 'validation.db'}"
+    upgrade_database(database_url)
+    with TestClient(create_app(database_url)) as client:
         response = client.post("/api/counters", json={"color": "blue"})
 
     # Invalid formats must fail at the Pydantic boundary before reaching the ORM.
@@ -53,6 +58,7 @@ def test_counter_color_is_validated(tmp_path: Path) -> None:
 
 def test_counter_can_be_deleted(tmp_path: Path) -> None:
     database_url = f"sqlite:///{tmp_path / 'database.db'}"
+    upgrade_database(database_url)
 
     with TestClient(create_app(database_url)) as client:
         # A deliberately emptied database stays empty for this running session;

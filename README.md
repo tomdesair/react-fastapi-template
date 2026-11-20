@@ -1,9 +1,7 @@
 # React + FastAPI Template
 
 A modern full-stack template featuring React for the frontend and FastAPI for
-the backend, bundled together in a single container using NGINX Unit.
-
-[Check out the tutorial blog!](https://ajac-zero.com/posts/building-react-fastapi-app-with-nginx-unit/)
+the backend, bundled together in a single Python container.
 
 ## Features
 
@@ -23,7 +21,7 @@ the backend, bundled together in a single container using NGINX Unit.
   - pytest and FastAPI `TestClient` for the backend
   - Vitest, jsdom, and React Testing Library for the frontend
 - **Production ready**
-  - Single-container deployment with NGINX Unit
+  - Single-container deployment with Python 3.15 and Uvicorn
   - Multi-stage Docker build
   - Readiness-based Docker health check
   - Static file serving and efficient dependency caching
@@ -65,7 +63,7 @@ just --version
 ```
 
 Python does not need to be installed separately. uv reads `.python-version` and
-installs the required Python 3.13 release when dependencies are synchronized.
+installs the required Python 3.15.2 release when dependencies are synchronized.
 A container engine is only required for the production commands.
 
 ## Install
@@ -104,6 +102,47 @@ cp .env.example .env
 `DATABASE_URL` can be set in `.env` or in the process environment. Process
 environment variables take precedence over `.env`; the default remains
 `sqlite:///./database.db`. The `.env` file is ignored by Git.
+
+Apply pending database migrations before development or deployment:
+
+```bash
+just migrate
+```
+
+The container entrypoint runs this migration step once before starting any
+Uvicorn workers. A failed migration stops container startup.
+
+## Database migrations
+
+Alembic owns schema changes and one-time data migrations. Application startup
+does not create tables or seed data, which prevents Uvicorn workers from racing
+during initialization.
+
+To add a schema migration after changing SQLAlchemy models:
+
+```bash
+just migrate
+uv run alembic revision --autogenerate -m "describe the schema change"
+```
+
+Review the generated file under `backend/migrations/versions/`, then apply and
+verify it:
+
+```bash
+just migrate
+uv run alembic check
+```
+
+Do not import live ORM models into version files for data migrations; define a
+small migration-local `sqlalchemy.table` so old revisions remain stable as
+application models evolve. Use `op.bulk_insert`, `op.execute`, or batch
+operations for data and SQLite schema changes. SQLite migrations must be
+reviewed carefully because unsupported `ALTER TABLE` operations are recreated
+in batch mode.
+
+The project starts with a fresh migration-managed database. Remove any
+pre-Alembic `database.db` before applying the baseline migration. Commit each
+migration with the model change it supports.
 
 ## Code quality
 
@@ -153,8 +192,7 @@ just start
 
 The application is available at `http://localhost:8080` by default:
 
-- Frontend static files are served directly by NGINX Unit.
-- `/api/*` requests are routed to the FastAPI application.
+- Frontend static files and `/api/*` requests are served by FastAPI.
 - API documentation is available at `http://localhost:8080/api/docs`.
 - `/api/health/alive` reports whether FastAPI is running.
 - `/api/health/ready` verifies that the configured database can execute a
@@ -165,6 +203,11 @@ The default database is `database.db` in the working directory. Set
 database URL. SQLite database files are excluded from version control.
 
 Pass a different host port to `just start`, for example `just start 3000`.
+The production entrypoint accepts `UVICORN_WORKERS` and
+`UVICORN_LIMIT_CONCURRENCY`. The latter limits concurrent connections in each
+worker, so total connection capacity is the product of both values. The worker
+count defaults to one and the concurrency limit defaults to Uvicorn's setting.
+
 The recipes use Docker when available and otherwise fall back to Podman. Set
 `CONTAINER_ENGINE=podman` or `CONTAINER_ENGINE=docker` to choose an engine when
 both are installed, for example:
@@ -188,12 +231,16 @@ CONTAINER_ENGINE=podman just start
 │   │   └── schemas.py
 │   ├── health/            # Liveness and readiness routes
 │   │   └── router.py
+│   ├── migrations/        # Alembic environment and versioned migrations
+│   │   ├── versions/
+│   │   ├── env.py
+│   │   └── runner.py
 │   ├── tests/             # Backend tests grouped by API feature
 │   │   ├── health/
 │   │   └── test_counters.py
 │   ├── __init__.py
 │   ├── config.py          # Typed settings and configuration fallbacks
-│   ├── database.py        # SQLAlchemy engine, sessions, base, and startup
+│   ├── database.py        # SQLAlchemy engine, sessions, base, and lifecycle
 │   └── server.py          # FastAPI composition and application lifecycle
 ├── frontend/              # React frontend
 │   ├── assets/
@@ -238,10 +285,12 @@ CONTAINER_ENGINE=podman just start
 ├── AGENTS.md              # Guidance for AI agents
 ├── .env.example           # Safe local configuration template
 ├── .python-version        # Python runtime selected by uv
-├── Dockerfile             # Multi-stage production build
+├── alembic.ini            # Alembic migration configuration
+├── docker/
+│   ├── Dockerfile         # Multi-stage production build
+│   └── start.sh           # Validated Uvicorn production entrypoint
 ├── Justfile               # Development, test, and build commands
 ├── pyproject.toml         # Backend package and dependency configuration
-├── unit.json              # NGINX Unit configuration
 ├── uv.lock                # Locked backend dependency graph
 └── README.md              # This file
 ```
@@ -271,9 +320,9 @@ Python project metadata remains at the repository root as `pyproject.toml`,
 root avoids extra `--project` flags throughout development and the container
 build without creating a separately distributable Python project.
 
-NGINX Unit routes `/api/*` to `backend.server:app`. All other paths are served
-from the compiled `frontend/` bundle in the same container, keeping frontend
-requests same-origin.
+FastAPI handles `/api/*` routes and mounts the compiled `frontend/dist` bundle
+for all other paths. Uvicorn serves both through one Python 3.15.2 process in
+the production container, keeping frontend requests same-origin.
 
 ## License
 
