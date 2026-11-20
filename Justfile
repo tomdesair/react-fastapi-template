@@ -11,6 +11,11 @@ install:
 
 alias i := install
 
+# Format backend and frontend source code
+format:
+    uv run ruff format backend
+    pnpm --dir frontend exec prettier --write --log-level silent .
+
 # Build the unit container
 build:
     docker build -t {{tag}} .

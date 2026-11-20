@@ -203,11 +203,6 @@ container:
 - Frontend tests use Vitest, jsdom, and React Testing Library.
 - `just` is the public command interface for installation, development,
   testing, builds, and production-container startup.
-- Ruff formats and lints Python in the backend. Its formatting and linting are
-  configured as separate pre-commit hooks.
-- Prettier formats the frontend, Markdown, and supported configuration files;
-  ESLint lints TypeScript in the frontend.
-- pre-commit runs the repository quality checks and can install a Git hook.
 - Docker and NGINX Unit provide the production deployment.
 
 ## Working conventions
@@ -260,11 +255,7 @@ Run commands from the repository root:
 - `just develop frontend` starts Vite with hot reload.
 - `just test backend` runs the backend pytest suite.
 - `just test frontend` runs the frontend Vitest suite.
-- `uv run ruff format .` formats Python.
-- `uv run ruff check .` lints Python.
-- `pnpm --dir frontend run format` formats frontend files.
-- `pnpm --dir frontend run lint` lints TypeScript.
-- `uv run pre-commit run --all-files` runs every formatting and linting check.
+- `just format` formats backend Python and frontend source files.
 - `just build` builds the complete production container.
 - `just start` runs that container on port 8080 by default.
 
@@ -272,7 +263,3 @@ The direct production checks for each side are `uv sync --locked --no-dev` for
 the backend and `pnpm --dir frontend run build` for the frontend. Use the
 smallest relevant test or build command while developing, then run both sides'
 checks when shared configuration or the container layout changes.
-
-After implementing a change, always run formatting and linting for the affected
-project. Do not finish a change while any formatter or linter reports an error.
-Run all pre-commit checks before handing off code.

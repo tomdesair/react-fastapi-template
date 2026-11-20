@@ -81,40 +81,20 @@ tooling contexts behind one public command interface.
 
 ## Code quality
 
-Enable the repository's pre-commit checks after installing the dependencies:
+Format all backend and frontend code:
+
+```bash
+just format
+```
+
+Install the pre-commit hook, then optionally run all checks manually:
 
 ```bash
 uv run pre-commit install
-```
-
-The Git hook then runs automatically before each commit. Run the complete check
-suite manually against the repository with:
-
-```bash
 uv run pre-commit run --all-files
 ```
 
-The backend uses Ruff for Python formatting and linting in separate pre-commit
-hooks. The frontend uses Prettier for formatting and ESLint for TypeScript
-linting. A commit is blocked when a check fails; review and stage any formatter
-or autofix changes before committing again.
-
-Run the backend tools directly with:
-
-```bash
-uv run ruff format .
-uv run ruff check .
-```
-
-Run the frontend tools directly with:
-
-```bash
-pnpm --dir frontend run format
-pnpm --dir frontend run lint
-```
-
-Use `pnpm --dir frontend run format:check` to verify frontend formatting without
-changing files. Always run formatting and linting after implementing a change.
+The checks use Ruff for Python, and Prettier plus ESLint for the frontend.
 
 ## Development
 
