@@ -8,7 +8,7 @@
     "fastapi": {
       "type": "python3",
       "path": "/app",
-      "module": "api.server",
+      "module": "backend.server",
       "callable": "app"
     }
   },
@@ -23,7 +23,7 @@
     },
     {
       "action": {
-        "share": "/app/gui$uri",
+        "share": "/app/frontend$uri",
         "types": ["image/*", "font/*", "text/*", "application/*"]
       }
     }

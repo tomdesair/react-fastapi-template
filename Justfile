@@ -19,16 +19,28 @@ build:
 start port='8080':
     docker run --rm -it -p {{port}}:80 {{tag}}
 
-# Run the target in dev mode with hot reload; Available targets: ['front', 'back']
+# Run a project target in development mode
 develop target:
     #!/usr/bin/env sh
-    if [ "{{target}}" = "front" ]; then
+    if [ "{{target}}" = "frontend" ]; then
         pnpm run dev
-    elif [ "{{target}}" = "back" ]; then
-        uv run uvicorn api.server:app --reload
+    elif [ "{{target}}" = "backend" ]; then
+        uv run uvicorn backend.server:app --reload
     else
-        echo "Invalid target: {{target}}. Use 'front' or 'back'."
+        echo "Invalid target: {{target}}. Use 'frontend' or 'backend'."
         exit 1
     fi
 
 alias dev := develop
+
+# Run a project's test suite
+test target:
+    #!/usr/bin/env sh
+    if [ "{{target}}" = "frontend" ]; then
+        pnpm run test
+    elif [ "{{target}}" = "backend" ]; then
+        uv run python -m pytest backend/tests
+    else
+        echo "Invalid target: {{target}}. Use 'frontend' or 'backend'."
+        exit 1
+    fi

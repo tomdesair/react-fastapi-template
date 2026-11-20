@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./gui/*"]
+      "@/*": ["./frontend/*"]
     },
 
     /* Bundler mode */
@@ -27,5 +27,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["gui"]
+  "include": ["frontend"]
 }

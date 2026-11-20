@@ -29,9 +29,9 @@ WORKDIR /app
 
 COPY --from=backend-builder --chown=app:app /app/.venv /venv
 
-COPY --from=frontend-builder /app/dist ./gui
+COPY --from=frontend-builder /app/dist ./frontend
 
-COPY api/ ./api
+COPY backend/ ./backend
 
 ENV PATH="/venv/bin:$PATH"
 

@@ -109,11 +109,11 @@ function App() {
               <div className="text-left text-muted-foreground space-y-4">
                 <p>1. Start the FastAPI backend:</p>
                 <code className="block bg-muted p-3 rounded text-sm">
-                  just dev back
+                  just develop backend
                 </code>
                 <p>2. Start the React frontend:</p>
                 <code className="block bg-muted p-3 rounded text-sm">
-                  just dev front
+                  just develop frontend
                 </code>
               </div>
             </div>
@@ -134,9 +134,9 @@ function App() {
         <footer className="mt-16 text-center text-sm text-muted-foreground">
           <p>
             In development mode, edit{" "}
-            <code className="text-primary">gui/App.tsx</code> or{" "}
-            <code className="text-primary">api/server.py</code> and save to test
-            Hot Module Reload
+            <code className="text-primary">frontend/App.tsx</code> or{" "}
+            <code className="text-primary">backend/server.py</code> and save to
+            test Hot Module Reload
           </p>
         </footer>
       </div>
