@@ -124,10 +124,11 @@ The checks use Ruff for Python, and Prettier plus ESLint for the frontend.
 
 ## Continuous integration
 
-GitHub Actions runs `.github/workflows/ci.yml` for every push and pull request.
-The workflow checks Python and frontend formatting and linting, runs all backend
-and frontend tests, and builds the production container image with Docker
-Buildx. The image is built for validation only and is not pushed to a registry.
+GitHub Actions runs `.github/workflows/ci.yml` for pull requests and pushes to
+`main`. The workflow checks Python and frontend formatting and linting, runs all
+backend and frontend tests, and builds the production container image with
+Docker Buildx. The image is built for validation only and is not pushed to a
+registry.
 
 ## Testing
 
