@@ -1,4 +1,4 @@
-FROM node:24-alpine AS frontend-builder
+FROM docker.io/node:24-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
