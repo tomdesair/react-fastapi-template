@@ -1,0 +1,49 @@
+minimum_pre_commit_version: "4.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-json
+        exclude: ^frontend/tsconfig.*\.json$
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-lint
+        name: Ruff lint
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: prettier
+        name: Prettier format
+        entry: pnpm --dir frontend run format
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+        types_or:
+          - css
+          - html
+          - javascript
+          - json
+          - jsx
+          - markdown
+          - scss
+          - ts
+          - tsx
+          - yaml
+      - id: eslint
+        name: ESLint
+        entry: pnpm --dir frontend run lint
+        language: system
+        pass_filenames: false
+        files: ^frontend/
+        types_or: [ts, tsx]
