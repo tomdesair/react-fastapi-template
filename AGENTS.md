@@ -203,6 +203,9 @@ container:
 - Frontend tests use Vitest, jsdom, and React Testing Library.
 - `just` is the public command interface for installation, development,
   testing, builds, and production-container startup.
+- GitHub Actions in `.github/workflows/ci.yml` checks formatting and linting,
+  runs all tests, and validates the production container build on every push
+  and pull request without publishing an image.
 - Docker or Podman and NGINX Unit provide the production deployment. Container
   recipes auto-detect Docker first and then Podman; `CONTAINER_ENGINE` can
   explicitly select either engine.
