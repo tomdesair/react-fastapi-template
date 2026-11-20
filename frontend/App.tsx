@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 function App() {
   const [counter, setCounter] = useState<number | null>(null);
 
-  // Fetch the current counter value
+  const getCounter = async () => {
+    const response = await fetch("/api/counter");
+    return (await response.json()) as { counter: number };
+  };
+
   const fetchCounter = async () => {
     try {
-      const response = await fetch("/api/counter");
-      const data = await response.json();
+      const data = await getCounter();
       setCounter(data.counter);
     } catch (error) {
       console.error("Failed to fetch counter:", error);
@@ -36,7 +39,21 @@ function App() {
 
   // Fetch counter on component mount
   useEffect(() => {
-    fetchCounter();
+    let active = true;
+
+    getCounter()
+      .then((data) => {
+        if (active) {
+          setCounter(data.counter);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch counter:", error);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (

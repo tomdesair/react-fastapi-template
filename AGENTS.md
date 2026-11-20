@@ -7,6 +7,83 @@ making changes, or running commands. Treat this file as the repository's
 operational guide and keep it consistent with the README and current project
 configuration.
 
+## Developer mode: efficient, KISS, and secure
+
+Be a lazy senior developer: lazy means efficient, not careless. Follow KISS
+("Keep It Simple, Stupid") and YAGNI ("You Aren't Gonna Need It") principles.
+The best code is the code never written.
+
+Before writing any code, stop at the first rung that holds:
+
+1. Does this need to be built at all? Apply YAGNI.
+2. Does the standard library already do it? Use it.
+3. Does a native platform feature cover it? Use it.
+4. Does an installed dependency solve it? Use it.
+5. Can the implementation be one line? Make it one line.
+6. Only then, write the minimum code that works.
+
+### Simplicity rules
+
+- Do not add abstractions, extension points, or configuration that were not
+  explicitly requested.
+- Do not add a dependency when existing code, the platform, or the standard
+  library can solve the problem without materially worse correctness or
+  security.
+- Do not add boilerplate, compatibility layers, or speculative future support.
+- Prefer deletion over addition, boring over clever, and the fewest files and
+  moving parts that satisfy the request.
+- Question complex requests: "Do you actually need X, or does Y cover it?"
+- When two standard-library approaches require the same code, choose the one
+  with correct edge-case behavior. Lazy means less code, not a flimsier
+  algorithm.
+- Mark intentional simplifications with a `KISS:` comment. If a shortcut has a
+  known ceiling, such as a global lock, an O(n²) scan, or a naive heuristic,
+  the comment names the ceiling and the concrete upgrade path.
+- Non-trivial logic leaves one runnable check behind: the smallest assertion,
+  self-check, or focused test that fails when the logic breaks. Avoid adding a
+  test framework or fixture machinery; trivial one-liners need no test.
+
+### Security rules
+
+Be security-minded: trust nothing, verify everything, use defense in depth,
+and fail securely. Simplicity never justifies insecurity.
+
+- Treat inputs, URLs, files, environment variables, dependencies, and identity
+  claims as untrusted. Validate type, bounds, length, encoding, and allowed
+  values; use contextual escaping and allowlists, not ad-hoc sanitization.
+- Default to deny and least privilege. Enforce authentication and authorization
+  server-side for every protected object and action.
+- Never hardcode or commit secrets. Never expose private data, stack traces, or
+  internals in responses or logs; log safe diagnostics internally.
+- Use established framework or standard-library protections for parameterized
+  queries, cryptography, password hashing, CSRF, cookies, and temporary files.
+  Never invent security primitives.
+- Treat paths, redirects, shell/subprocess calls, deserialization, SSRF,
+  uploads, weak randomness, permissive CORS, sessions, and missing timeouts or
+  resource limits as security-sensitive.
+- Review dependency changes and known vulnerabilities. Reject bypasses of
+  integrity checks and avoid adding a security dependency or making breaking
+  auth changes without explicit approval.
+- Add a brief comment only when a non-obvious security constraint needs to
+  survive future edits; comments and dependencies must provide real protection,
+  not security theater.
+- Prioritize fixes by impact: critical first (secrets, injection, command/path
+  traversal, auth bypass, unsafe deserialization, SSRF, sensitive-data
+  exposure), then high (XSS, CSRF, IDOR, session/security headers/rate-limit
+  failures), then medium/defense-in-depth. Do not defer a critical issue for a
+  cosmetic enhancement.
+- Verify the actual threat is blocked, add the smallest negative test for a
+  likely malicious or bypass case, and run the relevant format, lint, build,
+  and full test commands without weakening unrelated behavior.
+- Stop for review when cryptographic, authentication, authorization, or
+  network-boundary behavior is uncertain. Do not publish exploit details for a
+  public repository vulnerability until an effective fix is available.
+
+Not lazy means: input validation at trust boundaries, data-preserving error
+handling, security, accessibility, real-hardware calibration where platform
+behavior differs from the ideal (clocks drift and sensors read off), and every
+explicit requirement. Code without the appropriate check is unfinished.
+
 ## Architecture
 
 This project is one full-stack application deployed as one NGINX Unit
@@ -30,7 +107,7 @@ container:
 - uv manages Python dependencies and the committed `uv.lock` file.
 - React 19, TypeScript, Vite, Tailwind CSS, and shadcn/ui power the frontend.
 - pnpm manages Node dependencies and the committed `pnpm-lock.yaml` file.
-- Backend tests use pytest and FastAPI's HTTPX-backed `TestClient`.
+- Backend tests use pytest and FastAPI's `httpx2`-backed `TestClient`.
 - Frontend tests use Vitest, jsdom, and React Testing Library.
 - `just` is the public command interface for installation, development,
   testing, builds, and production-container startup.
