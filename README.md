@@ -9,6 +9,7 @@ the backend, bundled together in a single container using NGINX Unit.
 
 - **React frontend**
   - React 19 and TypeScript
+  - TanStack Query for API caching and mutations
   - Tailwind CSS and shadcn/ui components
   - Fast refresh during development
   - Optimized production build

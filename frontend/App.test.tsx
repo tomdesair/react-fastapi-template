@@ -1,11 +1,20 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
 
 describe("App", () => {
+  let queryClient: QueryClient;
+
   beforeEach(() => {
     let counter = 0;
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
 
     vi.stubGlobal(
       "fetch",
@@ -24,11 +33,16 @@ describe("App", () => {
   });
 
   afterEach(() => {
+    queryClient.clear();
     vi.unstubAllGlobals();
   });
 
   it("loads and increments the counter", async () => {
-    render(<App />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>,
+    );
 
     expect(await screen.findByText("0")).toBeTruthy();
 

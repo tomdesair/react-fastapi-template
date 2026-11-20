@@ -105,7 +105,37 @@ container:
 
 - Python 3.13+ with FastAPI, Pydantic, and Uvicorn.
 - uv manages Python dependencies and the committed `uv.lock` file.
-- React 19, TypeScript, Vite, Tailwind CSS, and shadcn/ui power the frontend.
+- React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, and TanStack Query power
+  the frontend. TanStack libraries are headless and should be added only when a
+  concrete feature needs their specific capability:
+  - **Query** is already installed; use it for server-state fetching, caching,
+    retries, synchronization, and mutations. Do not copy remote API data into
+    a separate client store.
+  - **Router** is appropriate once the app has multiple or nested routes,
+    type-safe navigation, route-level loading, or validated URL search state.
+  - **Table** is appropriate for feature-rich client-side data grids requiring
+    sorting, filtering, grouping, pagination, or column state—not a small,
+    static HTML table.
+  - **Form** is appropriate for complex, typed forms with reusable validation,
+    field arrays, cross-field dependencies, or multi-step state—not a few
+    inputs that native React and browser validation cover.
+  - **Virtual** is appropriate when large lists or grids render too many DOM
+    nodes; first verify that pagination or a normal DOM list is insufficient.
+  - **Pacer** is appropriate for recurring UI timing concerns such as
+    debouncing, throttling, batching, and queues. Backend rate limits and
+    security controls still belong on the server.
+  - **Store** is for shared reactive client state; **DB** is for local-first
+    synchronized collections and optimistic/offline workflows. Do not use
+    either as a second home for Query-managed server state.
+  - **AI** is appropriate only when the feature explicitly needs AI streaming
+    or client-side AI primitives. Do not add it for ordinary HTTP APIs.
+  - **Start** is a full-stack React framework and conflicts with this
+    Vite/FastAPI architecture; adopting it requires an explicit architecture
+    decision, not a feature-level dependency addition.
+  - When a chosen TanStack library provides **Devtools**, add them only if the
+    team needs their diagnostics and keep them development-only.
+  Before adopting another library, confirm the current package status and
+  React compatibility; beta libraries require explicit justification.
 - pnpm manages Node dependencies and the committed `pnpm-lock.yaml` file.
 - Backend tests use pytest and FastAPI's `httpx2`-backed `TestClient`.
 - Frontend tests use Vitest, jsdom, and React Testing Library.

@@ -1,60 +1,48 @@
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import reactLogo from "./assets/react.svg";
 import fastapiLogo from "./assets/fastapi.svg";
 import { Button } from "@/components/ui/button";
 
+const counterQueryKey = ["counter"] as const;
+
+async function getCounter() {
+  const response = await fetch("/api/counter");
+  if (!response.ok) {
+    throw new Error("Failed to fetch counter");
+  }
+  return (await response.json()) as { counter: number };
+}
+
+async function incrementCounter(amount: number) {
+  const response = await fetch("/api/counter", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ amount }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to increment counter");
+  }
+}
+
 function App() {
-  const [counter, setCounter] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const counterQuery = useQuery({
+    queryKey: counterQueryKey,
+    queryFn: getCounter,
+  });
+  const counterMutation = useMutation({
+    mutationFn: incrementCounter,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: counterQueryKey }),
+  });
 
-  const getCounter = async () => {
-    const response = await fetch("/api/counter");
-    return (await response.json()) as { counter: number };
-  };
-
-  const fetchCounter = async () => {
-    try {
-      const data = await getCounter();
-      setCounter(data.counter);
-    } catch (error) {
-      console.error("Failed to fetch counter:", error);
-    }
-  };
-
-  // Increment the counter
-  const incrementCounter = async () => {
-    try {
-      await fetch("/api/counter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ amount: 1 }),
-      });
-      // Fetch the updated counter value
-      await fetchCounter();
-    } catch (error) {
-      console.error("Failed to increment counter:", error);
-    }
-  };
-
-  // Fetch counter on component mount
-  useEffect(() => {
-    let active = true;
-
-    getCounter()
-      .then((data) => {
-        if (active) {
-          setCounter(data.counter);
-        }
-      })
-      .catch((error) => {
-        console.error("Failed to fetch counter:", error);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+  const displayedCounter = counterQuery.isPending
+    ? "..."
+    : counterQuery.isError
+      ? "Unavailable"
+      : counterQuery.data.counter;
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -138,11 +126,23 @@ function App() {
             <div className="bg-card rounded-lg shadow-lg p-8 flex flex-col items-center justify-center gap-6">
               <h2 className="text-xl font-semibold">Demo Counter</h2>
               <div className="text-4xl font-bold text-primary">
-                {counter !== null ? counter : "..."}
+                {displayedCounter}
               </div>
-              <Button variant="default" size="lg" onClick={incrementCounter}>
-                Increment Counter
+              <Button
+                variant="default"
+                size="lg"
+                disabled={counterMutation.isPending}
+                onClick={() => counterMutation.mutate(1)}
+              >
+                {counterMutation.isPending
+                  ? "Incrementing..."
+                  : "Increment Counter"}
               </Button>
+              {counterMutation.isError && (
+                <p role="alert" className="text-sm text-destructive">
+                  Counter could not be updated.
+                </p>
+              )}
             </div>
           </div>
         </div>
