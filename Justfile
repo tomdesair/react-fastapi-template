@@ -11,6 +11,10 @@ install:
 
 alias i := install
 
+# Apply all pending database migrations
+migrate:
+    uv run alembic upgrade head
+
 # Format backend and frontend source code
 format:
     uv run ruff format backend
@@ -46,19 +50,27 @@ container-engine:
         exit 1
     fi
 
-# Build the unit container
+# Build the production container
 build:
     #!/usr/bin/env sh
     set -eu
     engine="$(just --quiet container-engine)"
-    "$engine" build -t {{ tag }} .
+    if [ "$engine" = "podman" ]; then
+        "$engine" build --format docker -f docker/Dockerfile -t {{ tag }} .
+    else
+        "$engine" build -f docker/Dockerfile -t {{ tag }} .
+    fi
 
-# Run the unit container on a specified port; Default port: 8080
+# Run the production container on a specified port; Default port: 8080
 start port='8080':
     #!/usr/bin/env sh
     set -eu
     engine="$(just --quiet container-engine)"
-    "$engine" run --rm -it -p {{ port }}:80 {{ tag }}
+    "$engine" run --rm -it \
+        -e DATABASE_URL \
+        -e UVICORN_WORKERS \
+        -e UVICORN_LIMIT_CONCURRENCY \
+        -p {{ port }}:8000 {{ tag }}
 
 # Run a project target in development mode
 develop target:

@@ -16,7 +16,7 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "12.21.0"
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.15"
 
 jobs:
   backend-quality:
@@ -147,5 +147,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: docker/Dockerfile
           push: false
           tags: react-fastapi-app:ci
