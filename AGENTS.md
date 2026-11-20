@@ -270,6 +270,27 @@ container:
   update this `AGENTS.md` file in the same change, including its purpose and
   any agent-relevant commands or constraints.
 
+### Git & Commit Message Conventions
+
+When creating Git commits, strictly follow the **Conventional Commits** specification:
+
+`<type>[optional scope]: <description>`
+
+#### Rules
+- **Types:** Use only `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, or `chore`.
+- **Subject line:** Use the imperative mood (e.g., "add", "fix", "update"), keep it under 72 characters, do not capitalize the first word after the colon, and omit a trailing period.
+- **Scope:** Keep scopes short and lowercase (e.g., `auth`, `api`, `ui`), matching the affected module or directory.
+- **Breaking changes:** Append `!` before the colon (e.g., `feat(api)!: remove v1 endpoints`) and include a `BREAKING CHANGE:` footer explaining the migration path.
+- **Body:** For non-trivial changes, add a blank line after the subject and briefly explain *why* the change was made (wrapped at 72 characters).
+- **Atomic commits:** Group related changes logically; do not mix unrelated refactors and features in a single commit.
+
+#### Examples
+- `feat(auth): add password reset token validation`
+- `fix(cart): prevent negative item quantities`
+- `refactor(db): extract connection pooling helper`
+- `docs: update local setup instructions in README`
+
+
 ## Commands
 
 Run commands from the repository root:
