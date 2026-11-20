@@ -40,6 +40,48 @@ The project is set up for local development with hot-reload capabilities for bot
 just install
 ```
 
+### Enable pre-commit checks
+
+After installing the dependencies, install the Git hook:
+
+```bash
+uv run pre-commit install
+```
+
+The checks then run automatically before each commit. To run them manually
+against the entire repository:
+
+```bash
+uv run pre-commit run --all-files
+```
+
+The hooks format Python with Ruff, lint Python with Ruff, format frontend files
+with Prettier, and lint TypeScript with ESLint. The Ruff formatting and linting
+steps are separate hooks. A commit is blocked while a check reports an error;
+formatters and autofixable lint violations must be reviewed and staged before
+committing again.
+
+### Format and lint changes
+
+Always format and lint your changes before committing.
+
+Backend (Ruff):
+
+```bash
+uv run ruff format .
+uv run ruff check .
+```
+
+Frontend (Prettier and ESLint):
+
+```bash
+pnpm run format
+pnpm run lint
+```
+
+Use `pnpm run format:check` to verify frontend formatting without changing
+files.
+
 ### Start the Backend
 
 ```bash
@@ -66,6 +108,7 @@ just start
 ```
 
 The application will be available at http://localhost:80 with:
+
 - Frontend static files served directly
 - All `/api/*` requests routed to the FastAPI application
 - API documentation at http://localhost/api/docs
