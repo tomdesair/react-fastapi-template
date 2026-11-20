@@ -12,11 +12,11 @@ COPY frontend/ ./
 
 RUN pnpm build
 
-FROM ghcr.io/astral-sh/uv:0.13.9 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.9-alpine AS uv
 
 FROM docker.io/python:3.15-alpine AS backend-builder
 
-COPY --from=uv /uv /uvx /bin/
+COPY --from=uv /usr/local/bin/uv /usr/local/bin/uvx /usr/local/bin/
 
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
@@ -33,7 +33,9 @@ WORKDIR /app
 
 # The default SQLite database is created in /app, so the non-root runtime account
 # owns that directory without needing write access to any other image location.
-RUN useradd --create-home --uid 10001 app && chown app:app /app
+RUN apk add --no-cache bash \
+    && adduser -D -H -u 10001 app \
+    && chown app:app /app
 
 COPY --from=backend-builder /app/.venv /venv
 
