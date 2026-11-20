@@ -9,7 +9,9 @@
       "type": "python3",
       "path": "/app",
       "module": "backend.server",
-      "callable": "app"
+      "callable": "app",
+      "user": "unit",
+      "group": "unit"
     }
   },
   "routes": [

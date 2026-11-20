@@ -1,12 +1,12 @@
-FROM node:23-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install --global pnpm@12.21.0
 
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 COPY frontend/ ./
 
@@ -27,7 +27,12 @@ FROM unit:python3.13-slim AS runtime
 
 WORKDIR /app
 
-COPY --from=backend-builder --chown=app:app /app/.venv /venv
+# The application creates its default SQLite database in /app, so the Unit
+# process must own that directory while the rest of the image remains root-owned.
+RUN chown unit:unit /app
+
+# Unit's official image provides the `unit` account for application ownership.
+COPY --from=backend-builder --chown=unit:unit /app/.venv /venv
 
 COPY --from=frontend-builder /app/frontend/dist ./frontend
 

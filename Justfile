@@ -16,13 +16,49 @@ format:
     uv run ruff format backend
     pnpm --dir frontend exec prettier --write --log-level silent .
 
+# Select the container engine used by the build and start recipes.
+[private]
+container-engine:
+    #!/usr/bin/env sh
+    set -eu
+
+    # An explicit value lets users choose Podman even when both CLIs are installed.
+    if [ -n "${CONTAINER_ENGINE:-}" ]; then
+        case "${CONTAINER_ENGINE}" in
+            docker | podman)
+                printf '%s\n' "${CONTAINER_ENGINE}"
+                exit 0
+                ;;
+            *)
+                echo "Invalid CONTAINER_ENGINE: ${CONTAINER_ENGINE}. Use 'docker' or 'podman'." >&2
+                exit 1
+                ;;
+        esac
+    fi
+
+    # Prefer Docker for backwards compatibility, then fall back to Podman.
+    if command -v docker >/dev/null 2>&1; then
+        echo docker
+    elif command -v podman >/dev/null 2>&1; then
+        echo podman
+    else
+        echo "Container engine not found. Install Docker or Podman, or set CONTAINER_ENGINE." >&2
+        exit 1
+    fi
+
 # Build the unit container
 build:
-    docker build -t {{tag}} .
+    #!/usr/bin/env sh
+    set -eu
+    engine="$(just --quiet container-engine)"
+    "$engine" build -t {{ tag }} .
 
 # Run the unit container on a specified port; Default port: 8080
 start port='8080':
-    docker run --rm -it -p {{port}}:80 {{tag}}
+    #!/usr/bin/env sh
+    set -eu
+    engine="$(just --quiet container-engine)"
+    "$engine" run --rm -it -p {{ port }}:80 {{ tag }}
 
 # Run a project target in development mode
 develop target:

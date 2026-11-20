@@ -34,6 +34,8 @@ the backend, bundled together in a single container using NGINX Unit.
 - [pnpm](https://pnpm.io/installation) 12 or newer
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - [just](https://github.com/casey/just)
+- [Docker](https://www.docker.com/) or [Podman](https://podman.io/) for the
+  production container commands
 
 Install Node.js with the installer for your operating system, or with your
 preferred version manager. The remaining tools can be installed on macOS and
@@ -64,8 +66,7 @@ just --version
 
 Python does not need to be installed separately. uv reads `.python-version` and
 installs the required Python 3.13 release when dependencies are synchronized.
-Docker is only required for the production-container commands and is not
-included in these setup instructions.
+A container engine is only required for the production commands.
 
 ## Install
 
@@ -78,23 +79,6 @@ just install
 The frontend is a self-contained pnpm project under `frontend/`; the backend is
 managed from the repository root by uv. The `just` recipes keep these separate
 tooling contexts behind one public command interface.
-
-## Code quality
-
-Format all backend and frontend code:
-
-```bash
-just format
-```
-
-Install the pre-commit hook, then optionally run all checks manually:
-
-```bash
-uv run pre-commit install
-uv run pre-commit run --all-files
-```
-
-The checks use Ruff for Python, and Prettier plus ESLint for the frontend.
 
 ## Development
 
@@ -120,6 +104,23 @@ cp .env.example .env
 `DATABASE_URL` can be set in `.env` or in the process environment. Process
 environment variables take precedence over `.env`; the default remains
 `sqlite:///./database.db`. The `.env` file is ignored by Git.
+
+## Code quality
+
+Format all backend and frontend code:
+
+```bash
+just format
+```
+
+Install the pre-commit hook, then optionally run all checks manually:
+
+```bash
+uv run pre-commit install
+uv run pre-commit run --all-files
+```
+
+The checks use Ruff for Python, and Prettier plus ESLint for the frontend.
 
 ## Testing
 
@@ -156,6 +157,14 @@ The default database is `database.db` in the working directory. Set
 database URL. SQLite database files are excluded from version control.
 
 Pass a different host port to `just start`, for example `just start 3000`.
+The recipes use Docker when available and otherwise fall back to Podman. Set
+`CONTAINER_ENGINE=podman` or `CONTAINER_ENGINE=docker` to choose an engine when
+both are installed, for example:
+
+```bash
+CONTAINER_ENGINE=podman just build
+CONTAINER_ENGINE=podman just start
+```
 
 ## Project structure
 

@@ -203,7 +203,9 @@ container:
 - Frontend tests use Vitest, jsdom, and React Testing Library.
 - `just` is the public command interface for installation, development,
   testing, builds, and production-container startup.
-- Docker and NGINX Unit provide the production deployment.
+- Docker or Podman and NGINX Unit provide the production deployment. Container
+  recipes auto-detect Docker first and then Podman; `CONTAINER_ENGINE` can
+  explicitly select either engine.
 
 ## Working conventions
 
@@ -256,8 +258,9 @@ Run commands from the repository root:
 - `just test backend` runs the backend pytest suite.
 - `just test frontend` runs the frontend Vitest suite.
 - `just format` formats backend Python and frontend source files.
-- `just build` builds the complete production container.
-- `just start` runs that container on port 8080 by default.
+- `just build` builds the complete production container with Docker or Podman.
+- `just start` runs that container with the selected engine on port 8080 by
+  default.
 
 The direct production checks for each side are `uv sync --locked --no-dev` for
 the backend and `pnpm --dir frontend run build` for the frontend. Use the
