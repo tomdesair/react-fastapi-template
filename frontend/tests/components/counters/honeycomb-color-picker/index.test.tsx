@@ -3,17 +3,17 @@ import { expect, it, vi } from "vitest";
 
 import { HoneycombColorPicker } from "@/components/counters/honeycomb-color-picker";
 
-it("selects a color from the honeycomb grid", () => {
-  // Clicking a native radio is the user's interaction boundary; checking the
-  // controlled value separately ensures the component does not mutate state.
-  const onChange = vi.fn();
+it("adds the clicked color from the honeycomb grid", () => {
+  // Action buttons must emit even for the controlled current value because
+  // adding is the click's side effect rather than a form-only selection.
+  const onSelect = vi.fn();
 
-  render(<HoneycombColorPicker value="#22c55e" onChange={onChange} />);
+  render(<HoneycombColorPicker value="#22c55e" onSelect={onSelect} />);
 
-  fireEvent.click(screen.getByRole("radio", { name: "Red" }));
+  fireEvent.click(screen.getByRole("button", { name: "Green" }));
 
-  expect(onChange).toHaveBeenCalledWith("#ef4444");
+  expect(onSelect).toHaveBeenCalledWith("#22c55e");
   expect(
-    screen.getByRole<HTMLInputElement>("radio", { name: "Green" }).checked,
-  ).toBe(true);
+    screen.getByRole("button", { name: "Green" }).getAttribute("aria-pressed"),
+  ).toBe("true");
 });

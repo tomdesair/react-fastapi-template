@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import "./app.css";
 import fastapiLogo from "@/assets/fastapi.svg";
 import reactLogo from "@/assets/react.svg";
-import { Button } from "@/components/ui/button";
 import { CounterCard } from "@/components/counters/counter-card";
 import { HoneycombColorPicker } from "@/components/counters/honeycomb-color-picker";
 import {
@@ -37,11 +36,11 @@ function App() {
       queryClient.invalidateQueries({ queryKey: countersQueryKey }),
   });
 
-  function addCounter(event: FormEvent<HTMLFormElement>) {
-    // Submission is handled by the persisted mutation rather than a browser
-    // navigation, keeping the application on the same page and origin.
-    event.preventDefault();
-    createMutation.mutate(newColor);
+  function addCounter(color: string) {
+    // A color click is the creation action; retaining it as the controlled
+    // value gives the picker visible feedback after a successful or failed add.
+    setNewColor(color);
+    createMutation.mutate(color);
   }
 
   return (
@@ -87,17 +86,13 @@ function App() {
         </div>
 
         <section className="mx-auto mt-10 max-w-xl rounded-lg bg-card p-6 shadow-lg">
-          <form
-            className="flex flex-col items-center gap-5"
-            onSubmit={addCounter}
-          >
-            <div className="min-w-0 w-full">
-              <HoneycombColorPicker value={newColor} onChange={setNewColor} />
-            </div>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Adding..." : "Add new counter"}
-            </Button>
-          </form>
+          <div className="min-w-0 w-full">
+            <HoneycombColorPicker
+              value={newColor}
+              disabled={createMutation.isPending}
+              onSelect={addCounter}
+            />
+          </div>
           {createMutation.isError && (
             <p role="alert" className="mt-3 text-sm text-destructive">
               {createMutation.error.message}

@@ -102,7 +102,7 @@ describe("App", () => {
     });
   });
 
-  it("adds a counter and reports duplicate colors", async () => {
+  it("adds a counter from the color picker and reports duplicate colors", async () => {
     render(
       <QueryClientProvider client={queryClient}>
         <App />
@@ -110,14 +110,16 @@ describe("App", () => {
     );
 
     expect(await screen.findByText("#0000ff")).toBeTruthy();
-    fireEvent.click(screen.getByRole("radio", { name: "Red" }));
-    fireEvent.click(screen.getByRole("button", { name: "Add new counter" }));
+    fireEvent.click(screen.getByRole("button", { name: "Red" }));
     expect(await screen.findByText("#ef4444")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Add new counter" }));
+    fireEvent.click(screen.getByRole("button", { name: "Red" }));
     expect(
       await screen.findByText("Color is already used. Pick another color."),
     ).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Add new counter" }),
+    ).toBeNull();
   });
 
   it("deletes a counter card", async () => {

@@ -31,9 +31,14 @@
   filter: drop-shadow(0 2px 2px rgb(0 0 0 / 25%));
 }
 
-.honeycomb-option:has(input:focus-visible) {
+.honeycomb-option:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+.honeycomb-option:disabled {
+  cursor: wait;
+  filter: grayscale(0.25);
 }
 
 .honeycomb-cell {
