@@ -78,6 +78,46 @@ The frontend is a self-contained pnpm project under `frontend/`; the backend is
 managed from the repository root by uv. The `just` recipes keep these separate
 tooling contexts behind one public command interface.
 
+## Using shadcn/ui
+
+This project does not depend on a `shadcn` runtime package. shadcn/ui copies
+component source code into the application instead of distributing components
+from a shared library. The CLI configuration lives in
+`frontend/components.json`, and installed component source lives under
+`frontend/components/ui/`. Supporting packages used by those components, such
+as Radix UI, `class-variance-authority`, `clsx`, and `tailwind-merge`, remain
+normal entries in `frontend/package.json`.
+
+The reusable `Button` component is included already. Import it through the
+configured `@/` alias and customize it with the variants defined in its source:
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+<Button variant="outline" size="sm">
+  Save
+</Button>;
+```
+
+See [shadcn/ui - The Foundation for your Design
+System](https://ui.shadcn.com/) for the project overview and browse the available
+options in the [shadcn/ui component
+catalog](https://ui.shadcn.com/docs/components). Each component page documents
+its variants, accessibility behavior, and installation command.
+
+To add a component that the application needs, run the CLI from `frontend/`:
+
+```bash
+cd frontend
+pnpm dlx shadcn@latest add card
+```
+
+The CLI copies the component source into `components/ui/` and installs any
+dependencies required by that component. Follow the project convention by
+keeping the generated component in its own subdirectory as `index.tsx`, for
+example `components/ui/card/index.tsx`. Component source is part of the
+application, so review and customize it just like any other local code.
+
 ## Development
 
 The frontend and backend run independently during development. Start them in
