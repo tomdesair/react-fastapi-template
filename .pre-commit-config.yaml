@@ -6,7 +6,7 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-json
-        exclude: ^tsconfig.*\.json$
+        exclude: ^frontend/tsconfig.*\.json$
       - id: check-merge-conflict
       - id: check-yaml
       - id: end-of-file-fixer
@@ -25,8 +25,10 @@ repos:
         types_or: [python, pyi]
       - id: prettier
         name: Prettier format
-        entry: pnpm exec prettier --write --ignore-unknown
+        entry: pnpm --dir frontend run format
         language: system
+        pass_filenames: false
+        files: ^frontend/
         types_or:
           - css
           - html
@@ -40,6 +42,8 @@ repos:
           - yaml
       - id: eslint
         name: ESLint
-        entry: pnpm exec eslint --fix
+        entry: pnpm --dir frontend run lint
         language: system
+        pass_filenames: false
+        files: ^frontend/
         types_or: [ts, tsx]
