@@ -35,44 +35,43 @@ const COLOR_ROWS: ColorOption[][] = [
 
 type HoneycombColorPickerProps = {
   value: string;
-  onChange: (color: string) => void;
+  disabled?: boolean;
+  onSelect: (color: string) => void;
 };
 
 export function HoneycombColorPicker({
   value,
-  onChange,
+  disabled = false,
+  onSelect,
 }: HoneycombColorPickerProps) {
   return (
     <fieldset className="min-w-0">
       <legend className="mb-3 text-sm font-medium">
-        Select a color for the new counter
+        Select a color to add a new counter
       </legend>
       <div className="honeycomb-grid" aria-label="Counter color">
         {COLOR_ROWS.map((row, rowIndex) => (
           <div className="honeycomb-row" key={rowIndex}>
             {row.map((color) => (
-              <label
+              <button
+                type="button"
                 className="honeycomb-option"
                 data-selected={value === color.value}
                 key={color.value}
                 title={`${color.name} (${color.value})`}
+                aria-pressed={value === color.value}
+                disabled={disabled}
+                onClick={() => onSelect(color.value)}
               >
-                {/* Native radio semantics provide keyboard arrows and a shared
-                    single-selection group without custom focus management. */}
-                <input
-                  className="sr-only"
-                  type="radio"
-                  name="counter-color"
-                  value={color.value}
-                  checked={value === color.value}
-                  onChange={() => onChange(color.value)}
-                />
+                {/* Every click is an action, so buttons also allow adding the
+                    currently selected color again without radio-only change
+                    semantics suppressing the interaction. */}
                 <span
                   className="honeycomb-cell"
                   style={{ backgroundColor: color.value }}
                 />
                 <span className="sr-only">{color.name}</span>
-              </label>
+              </button>
             ))}
           </div>
         ))}
